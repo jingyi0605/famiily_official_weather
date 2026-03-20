@@ -2,6 +2,9 @@
   "id": "official-weather",
   "name": "官方天气插件",
   "version": "0.1.0",
+  "compatibility": {
+    "min_app_version": "0.1.0"
+  },
   "api_version": 1,
   "types": [
     "integration"
