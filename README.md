@@ -29,11 +29,17 @@
 
 ## 市场提交时建议使用的路径
 
-- 仓库分支：`main`
 - `manifest.json` 路径：`official_weather/manifest.json`
 - README 路径：`README.md`
 - 插件包根目录：`official_weather`
 - `requirements.txt` 路径：`requirements.txt`
+
+## 发布版本时要做什么
+
+- 先更新 `official_weather/manifest.json` 里的 `version`
+- 同时确认 `compatibility.min_app_version` 还是正确的最低宿主版本
+- 正式发布时创建和 `manifest.version` 一致的 tag，例如当前版本应发布为 `v0.1.1`
+- 市场收录正式版本时，应优先使用 tag，不要长期把正式条目挂在 `main` 分支上
 
 ## 说明
 
