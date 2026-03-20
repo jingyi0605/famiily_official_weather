@@ -12,11 +12,11 @@
 
 ```text
 .
-├─ manifest.json
 ├─ requirements.txt
 └─ official_weather/
    ├─ __init__.py
    ├─ integration.py
+   ├─ manifest.json
    ├─ service.py
    ├─ providers.py
    ├─ repository.py
