@@ -1,0 +1,430 @@
+{
+  "id": "official-weather",
+  "name": "官方天气插件",
+  "version": "0.1.0",
+  "api_version": 1,
+  "types": [
+    "integration"
+  ],
+  "permissions": [
+    "device.read",
+    "region.read"
+  ],
+  "risk_level": "low",
+  "triggers": [
+    "manual",
+    "schedule"
+  ],
+  "entrypoints": {
+    "integration": "official_weather.integration.sync"
+  },
+  "capabilities": {
+    "integration": {
+      "domains": [
+        "weather"
+      ],
+      "instance_model": "multi_instance",
+      "refresh_mode": "polling",
+      "supports_discovery": false,
+      "supports_actions": false,
+      "supports_cards": true,
+      "auto_create_default_instance": true,
+      "default_instance_display_name": "家庭天气",
+      "default_instance_config": {
+        "binding_type": "default_household"
+      },
+      "entity_types": [
+        "weather.condition",
+        "weather.temperature",
+        "weather.humidity",
+        "weather.wind_speed",
+        "weather.wind_direction",
+        "weather.pressure",
+        "weather.cloud_cover",
+        "weather.precipitation_next_1h",
+        "weather.forecast_6h",
+        "weather.updated_at"
+      ],
+      "default_cache_ttl_seconds": 1800,
+      "max_stale_seconds": 7200
+    }
+  },
+  "dashboard_cards": [
+    {
+      "card_key": "weather-default",
+      "card_key_prefix": "weather-",
+      "placement": "home",
+      "template_type": "insight",
+      "size": "half",
+      "title_key": "official_weather.dashboard.title",
+      "subtitle_key": "official_weather.dashboard.subtitle",
+      "refresh_strategy": "scheduled",
+      "allowed_actions": []
+    }
+  ],
+  "locales": [
+    {
+      "id": "zh-CN",
+      "label": "Simplified Chinese",
+      "native_label": "简体中文",
+      "resource": "locales/zh-CN.json"
+    },
+    {
+      "id": "en-US",
+      "label": "English (US)",
+      "native_label": "English",
+      "resource": "locales/en-US.json"
+    }
+  ],
+  "config_specs": [
+    {
+      "scope_type": "plugin",
+      "title": "天气源配置",
+      "title_key": "official_weather.config.provider.title",
+      "description": "默认使用无需 API key 的 MET Norway，同时预留 OpenWeather 和 WeatherAPI 的用户自填 key 配置入口。",
+      "description_key": "official_weather.config.provider.description",
+      "schema_version": 1,
+      "config_schema": {
+        "fields": [
+          {
+            "key": "provider_type",
+            "label": "天气源",
+            "label_key": "official_weather.config.provider.fields.provider_type.label",
+            "type": "enum",
+            "required": true,
+            "default": "met_norway",
+            "enum_options": [
+              {
+                "label": "MET Norway（默认）",
+                "label_key": "official_weather.config.provider.fields.provider_type.options.met_norway",
+                "value": "met_norway"
+              },
+              {
+                "label": "OpenWeather",
+                "label_key": "official_weather.config.provider.fields.provider_type.options.openweather",
+                "value": "openweather"
+              },
+              {
+                "label": "WeatherAPI",
+                "label_key": "official_weather.config.provider.fields.provider_type.options.weatherapi",
+                "value": "weatherapi"
+              }
+            ]
+          },
+          {
+            "key": "refresh_interval_minutes",
+            "label": "缓存分钟数",
+            "label_key": "official_weather.config.provider.fields.refresh_interval_minutes.label",
+            "type": "integer",
+            "required": false,
+            "default": 30,
+            "minimum": 5,
+            "maximum": 240
+          },
+          {
+            "key": "request_timeout_seconds",
+            "label": "请求超时秒数",
+            "label_key": "official_weather.config.provider.fields.request_timeout_seconds.label",
+            "type": "integer",
+            "required": false,
+            "default": 10,
+            "minimum": 3,
+            "maximum": 60
+          },
+          {
+            "key": "user_agent",
+            "label": "对外请求标识",
+            "label_key": "official_weather.config.provider.fields.user_agent.label",
+            "type": "string",
+            "required": false,
+            "default": "FamilyClaw/0.1 (official-weather-plugin)",
+            "min_length": 1,
+            "max_length": 255
+          },
+          {
+            "key": "openweather_api_key",
+            "label": "OpenWeather API Key",
+            "label_key": "official_weather.config.provider.fields.openweather_api_key.label",
+            "type": "secret",
+            "required": false
+          },
+          {
+            "key": "weatherapi_api_key",
+            "label": "WeatherAPI Key",
+            "label_key": "official_weather.config.provider.fields.weatherapi_api_key.label",
+            "type": "secret",
+            "required": false
+          }
+        ]
+      },
+      "ui_schema": {
+        "sections": [
+          {
+            "id": "provider",
+            "title": "天气源",
+            "title_key": "official_weather.config.provider.section.title",
+            "fields": [
+              "provider_type",
+              "refresh_interval_minutes",
+              "request_timeout_seconds",
+              "user_agent",
+              "openweather_api_key",
+              "weatherapi_api_key"
+            ]
+          }
+        ],
+        "field_order": [
+          "provider_type",
+          "refresh_interval_minutes",
+          "request_timeout_seconds",
+          "user_agent",
+          "openweather_api_key",
+          "weatherapi_api_key"
+        ],
+        "submit_text": "保存天气源配置",
+        "submit_text_key": "official_weather.config.provider.submit",
+        "widgets": {
+          "provider_type": {
+            "widget": "select",
+            "help_text": "默认天气源是 MET Norway；切到 OpenWeather 或 WeatherAPI 时需要用户自己填写 key。",
+            "help_text_key": "official_weather.config.provider.fields.provider_type.help_text"
+          },
+          "refresh_interval_minutes": {
+            "widget": "input",
+            "help_text": "同一个天气设备在缓存有效期内会复用最近一次成功快照。",
+            "help_text_key": "official_weather.config.provider.fields.refresh_interval_minutes.help_text"
+          },
+          "request_timeout_seconds": {
+            "widget": "input",
+            "help_text": "避免外部天气源卡住刷新链路。",
+            "help_text_key": "official_weather.config.provider.fields.request_timeout_seconds.help_text"
+          },
+          "user_agent": {
+            "widget": "input",
+            "help_text": "MET Norway 要求带上明确的 User-Agent。",
+            "help_text_key": "official_weather.config.provider.fields.user_agent.help_text"
+          },
+          "openweather_api_key": {
+            "widget": "password",
+            "placeholder": "切到 OpenWeather 时填写",
+            "placeholder_key": "official_weather.config.provider.fields.openweather_api_key.placeholder",
+            "help_text": "切到 OpenWeather 后会直接用这个 key 发起天气查询。",
+            "help_text_key": "official_weather.config.provider.fields.openweather_api_key.help_text",
+            "visible_when": [
+              {
+                "field": "provider_type",
+                "operator": "equals",
+                "value": "openweather"
+              }
+            ]
+          },
+          "weatherapi_api_key": {
+            "widget": "password",
+            "placeholder": "切到 WeatherAPI 时填写",
+            "placeholder_key": "official_weather.config.provider.fields.weatherapi_api_key.placeholder",
+            "help_text": "切到 WeatherAPI 后会直接用这个 key 发起天气查询。",
+            "help_text_key": "official_weather.config.provider.fields.weatherapi_api_key.help_text",
+            "visible_when": [
+              {
+                "field": "provider_type",
+                "operator": "equals",
+                "value": "weatherapi"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "scope_type": "integration_instance",
+      "title": "地区绑定",
+      "title_key": "official_weather.config.binding.title",
+      "description": "每个天气设备都绑定一个地区来源。默认实例跟随家庭坐标；附加实例会先动态拉可用地区 provider，再按 provider 拉省、市、区县选项。",
+      "description_key": "official_weather.config.binding.description",
+      "schema_version": 2,
+      "config_schema": {
+        "fields": [
+          {
+            "key": "binding_type",
+            "label": "绑定方式",
+            "label_key": "official_weather.config.binding.fields.binding_type.label",
+            "type": "enum",
+            "required": true,
+            "default": "region_node",
+            "enum_options": [
+              {
+                "label": "当前家庭默认坐标",
+                "label_key": "official_weather.config.binding.fields.binding_type.options.default_household",
+                "value": "default_household"
+              },
+              {
+                "label": "指定地区节点",
+                "label_key": "official_weather.config.binding.fields.binding_type.options.region_node",
+                "value": "region_node"
+              }
+            ]
+          },
+          {
+            "key": "provider_code",
+            "label": "地区提供方",
+            "label_key": "official_weather.config.binding.fields.provider_code.label",
+            "type": "enum",
+            "required": false,
+            "option_source": {
+              "source": "region_provider_list",
+              "country_code": "CN"
+            }
+          },
+          {
+            "key": "province_code",
+            "label": "省份",
+            "label_key": "official_weather.config.binding.fields.province_code.label",
+            "type": "enum",
+            "required": false,
+            "depends_on": [
+              "provider_code"
+            ],
+            "clear_on_dependency_change": true,
+            "option_source": {
+              "source": "region_catalog_children",
+              "country_code": "CN",
+              "provider_field": "provider_code",
+              "admin_level": "province"
+            }
+          },
+          {
+            "key": "city_code",
+            "label": "城市",
+            "label_key": "official_weather.config.binding.fields.city_code.label",
+            "type": "enum",
+            "required": false,
+            "depends_on": [
+              "provider_code",
+              "province_code"
+            ],
+            "clear_on_dependency_change": true,
+            "option_source": {
+              "source": "region_catalog_children",
+              "country_code": "CN",
+              "provider_field": "provider_code",
+              "parent_field": "province_code",
+              "admin_level": "city"
+            }
+          },
+          {
+            "key": "district_code",
+            "label": "区县",
+            "label_key": "official_weather.config.binding.fields.district_code.label",
+            "type": "enum",
+            "required": false,
+            "depends_on": [
+              "provider_code",
+              "province_code",
+              "city_code"
+            ],
+            "clear_on_dependency_change": true,
+            "option_source": {
+              "source": "region_catalog_children",
+              "country_code": "CN",
+              "provider_field": "provider_code",
+              "parent_field": "city_code",
+              "admin_level": "district"
+            }
+          }
+        ]
+      },
+      "ui_schema": {
+        "sections": [
+          {
+            "id": "binding",
+            "title": "地区绑定",
+            "title_key": "official_weather.config.binding.section.title",
+            "fields": [
+              "binding_type",
+              "provider_code",
+              "province_code",
+              "city_code",
+              "district_code"
+            ]
+          }
+        ],
+        "field_order": [
+          "binding_type",
+          "provider_code",
+          "province_code",
+          "city_code",
+          "district_code"
+        ],
+        "submit_text": "保存地区绑定",
+        "submit_text_key": "official_weather.config.binding.submit",
+        "widgets": {
+          "binding_type": {
+            "widget": "select",
+            "help_text": "默认家庭天气会直接读取家庭坐标；附加地区天气请绑定地区节点。",
+            "help_text_key": "official_weather.config.binding.fields.binding_type.help_text"
+          },
+          "provider_code": {
+            "widget": "select",
+            "help_text": "这里会动态列出当前家庭可用的地区 provider。安装新的地区包后，这里会直接出现。",
+            "help_text_key": "official_weather.config.binding.fields.provider_code.help_text",
+            "visible_when": [
+              {
+                "field": "binding_type",
+                "operator": "equals",
+                "value": "region_node"
+              }
+            ]
+          },
+          "province_code": {
+            "widget": "select",
+            "help_text": "先选地区提供方，再从该 provider 的省级目录里选择。",
+            "help_text_key": "official_weather.config.binding.fields.province_code.help_text",
+            "visible_when": [
+              {
+                "field": "binding_type",
+                "operator": "equals",
+                "value": "region_node"
+              },
+              {
+                "field": "provider_code",
+                "operator": "truthy"
+              }
+            ]
+          },
+          "city_code": {
+            "widget": "select",
+            "help_text": "城市列表会根据当前 provider 和已选省份联动刷新。",
+            "help_text_key": "official_weather.config.binding.fields.city_code.help_text",
+            "visible_when": [
+              {
+                "field": "binding_type",
+                "operator": "equals",
+                "value": "region_node"
+              },
+              {
+                "field": "province_code",
+                "operator": "truthy"
+              }
+            ]
+          },
+          "district_code": {
+            "widget": "select",
+            "help_text": "最终天气查询会落到区县节点。切换城市后，这里的选项会自动重拉。",
+            "help_text_key": "official_weather.config.binding.fields.district_code.help_text",
+            "visible_when": [
+              {
+                "field": "binding_type",
+                "operator": "equals",
+                "value": "region_node"
+              },
+              {
+                "field": "city_code",
+                "operator": "truthy"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
